@@ -93,7 +93,7 @@ polygon(x=c(0.3, 1, 1, .3), y=c(0.5, 0.5, 1, 1), col=adjustcolor("orangered", al
 ```
 
 Figure shows the probability of being truly seronegative for individuals who test positive (1-PPV) for tests with varying sensitivities and specificities. Three transmission settings are considered: low transmission - 5% seroprevalence (SP); moderate transmission - 50% seroprevalence; and high transmission - 80% seroprevalence. The red shaded area indicates the space where PPV<0.5, or where more individuals would be misclassified rather than correctly classified.
-Two specific scenarios are highlighted: A test with 90% sensitivity and 95% specificity would misclassify <2 individuals for every 100 that test positive in a high transmission setting (SP=0.8) (green circle), while the same test would misclassify over half of those who test positive in a low transmission setting (SP=0.05) (red triangle).
+Two specific scenarios are highlighted: A test with 90% sensitivity and 95% specificity would misclassify <2 individuals for every 100 that test positive in a high transmission setting (SP=0.8) (green triangle), while the same test would misclassify over half of those who test positive in a low transmission setting (SP=0.05) (red circle).
 
 ### Minimum specificity required to ensure a level of misclassification (1-PPV)
 
