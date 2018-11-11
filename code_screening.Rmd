@@ -1,0 +1,138 @@
+---
+title: "Dengue pre-vaccination screening"
+author: Isabel Rodriguez-Barraquer, Henrik Salje, Derek Cummings
+output: html_document
+---
+The WHO’s SAGE committee recently recommended that the only licensed dengue vaccine, CYD-TV (Dengvaxia), should only be used in individuals with serological confirmation of past DENV infection, following pre-vaccination screening. A key challenge that has been discussed is that no point-of-care tests that would allow pre-vaccination screening with high sensitivity and specificity are currently available.
+
+Since a key goal of the recommendation is to minimize harm to seronegative individuals, sensitivity and specificity may not be the most useful target metrics for assay development (and may be misleading). Instead, we propose that assay development should focus on the positive predictive value (PPV) as it directly quantifies the probability that a person who tests positive is truly seropositive, or the probability that they have been misclassified (1-PPV). 
+
+To illustrate this idea, we calculated the expected PPV (and 1-PPV) for tests with varying sensitivity and specificity, and across a range of transmission intensities, represented by different levels of seroprevalence. 
+
+$$P(Seropositive|Test+)=PPV = \frac{prevalence*sensitivity}{prevalence*sensitivity+(1-prevalence)(1-specificity)} $$
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(RColorBrewer)
+
+```
+
+### PPV across transmission settings
+```{r Fig_scenarios, include=TRUE}
+# Model 3 scenarios
+# Travelers, p=.05
+# Medium prevalence p=.5
+# High prevalence =.8
+
+prev<-c(0.05, .5, .8)
+sens<-seq(.5, .99, by=.01)
+spec<-seq(.5, .99, by=.01)
+
+#Low (travelers)
+p1<-prev[1]*sens
+p2<-(1-prev[1])*(1-spec)
+p3<-outer(p1, p2, "+")
+post_test_p_l<-1-p1*1/p3
+
+#Moderate
+p1<-prev[2]*sens
+p2<-(1-prev[2])*(1-spec)
+p3<-outer(p1, p2, "+")
+post_test_p_m<-1-p1*1/p3
+
+#High
+p1<-prev[3]*sens
+p2<-(1-prev[3])*(1-spec)
+p3<-outer(p1, p2, "+")
+post_test_p_h<-1-p1*1/p3
+
+
+
+specplot<-c(21, 31, 41, 46, 50)
+
+### Screen figure
+col.plot=brewer.pal(n = 8, "YlGnBu")
+
+par(las=1, oma=c(5, 6, 2, 1), mar=c(1, .4, 1, .4))
+col.plot=brewer.pal(n = 8, "YlGnBu")
+par(mfrow=c(1,3))
+matplot(sens, post_test_p_l[,specplot], type="l", xlab="sensitivity", ylab="", log="y", ylim=c(0.001, 1), col=col.plot[4:8], lty=1, main="SP=0.05", bty="n", yaxt="n", xaxt="n")
+points(sens[41], post_test_p_l[41, 46], pch=19, col="red", cex=1.2)
+axis(1, cex.axis=1.2)
+axis(2, cex.axis=1.2, at=c(1, 0.1, 0.01, 0.001, 0.0001), labels =c(1, 0.1, 0.01, 0.001, 0.0001))
+#abline(h=.1)
+legend("bottomleft", legend=paste("Specificity=", spec[specplot], sep=""), col=col.plot[4:8], lty=1, bty="n")
+abline(v=seq(0, 1, by=.2), col="grey70", lty=2)
+abline(h=c(0.001, 0.01, .1, 1), col="grey70", lty=2)
+polygon(x=c(0.3, 1, 1, .3), y=c(0.5, 0.5, 1, 1), col=adjustcolor("orangered", alpha.f = .2), border=NA)
+
+matplot(sens, post_test_p_m[,specplot], type="l", xlab="sensitivity", ylab="", log="y", ylim=c(0.001, 1), col=col.plot[4:8], lty=1, main="SP=0.5", bty="n", yaxt="n", xaxt="n")
+axis(2, cex.axis=1.2, at=c(1, 0.1, 0.01, 0.001, 0.0001), labels=F, tick=T)
+axis(1, cex.axis=1.2)
+abline(v=seq(0, 1, by=.2), col="grey70", lty=2)
+abline(h=c(0.001, 0.01, .1, 1), col="grey70", lty=2)
+#abline(h=0.5, col="red", lty=1)
+polygon(x=c(0.3, 1, 1, .3), y=c(0.5, 0.5, 1, 1), col=adjustcolor("orangered", alpha.f = .2), border=NA)
+
+#abline(h=.1)
+matplot(sens, post_test_p_h[,specplot], type="l", xlab="sensitivity", ylab="", log="y", ylim=c(0.001, 1), col=col.plot[4:8], lty=1, main="SP=0.8", bty="n", yaxt="n", xaxt="n")
+#abline(h=0.5, col="red", lty=1)
+axis(1, cex.axis=1.2)
+axis(2, cex.axis=1.2, at=c(1, 0.1, 0.01, 0.001, 0.0001), labels=F, tick=T)
+abline(v=seq(0, 1, by=.2), col="grey70", lty=2)
+abline(h=c(0.001, 0.01, .1, 1), col="grey70", lty=2)
+par(las=0)
+mtext("1-PPV", side = 2, line = 3, cex.lab=1.2, outer=T)
+mtext("Sensitivity", side = 1, line = 2, cex.lab=1.2, outer=T)
+points(sens[41], post_test_p_h[41, 46], pch=17, col="forestgreen", cex=1.4)
+#abline(h=.1)
+polygon(x=c(0.3, 1, 1, .3), y=c(0.5, 0.5, 1, 1), col=adjustcolor("orangered", alpha.f = .2), border=NA)
+
+
+
+```
+
+Figure shows the probability of being truly seronegative for individuals who test positive (1-PPV) for tests with varying sensitivities and specificities. Three transmission settings are considered: low transmission - 5% seroprevalence (SP); moderate transmission - 50% seroprevalence; and high transmission - 80% seroprevalence. The red shaded area indicates the space where PPV<0.5, or where more individuals would be misclassified rather than correctly classified.
+Two specific scenarios are highlighted: A test with 90% sensitivity and 95% specificity would misclassify <2 individuals for every 100 that test positive in a high transmission setting (SP=0.8) (green circle), while the same test would misclassify over half of those who test positive in a low transmission setting (SP=0.05) (red triangle).
+
+### Minimum specificity required to ensure a level of misclassification (1-PPV)
+
+```{r Fig_minimum_spec, include=TRUE, fig.height=6, fig.width=5}
+# Calculate the minimum specificity required assuming the test sensitivity is 90%
+prev2<-seq(.02, 1, by=.001)
+spec2<-seq(.001, .99, by=.001)
+sens2<-.9
+
+p1<-prev2*sens2
+p2<-outer((1-prev2), (1-spec2), FUN = "*")
+p3<-p1+p2
+post_test_p_s<-p1*1/p3
+
+
+ind.min<-matrix(ncol=5, nrow=length(prev2))
+for(i in 1:length(prev2)) {
+  ind.min[i, 1]<-which(post_test_p_s[i,]>.5)[1]
+  ind.min[i, 2]<-which(post_test_p_s[i,]>.8)[1]
+  ind.min[i, 3]<-which(post_test_p_s[i,]>.9)[1]
+  ind.min[i, 4]<-which(post_test_p_s[i,]>.98)[1]
+}
+min.spec<-matrix(spec2[ind.min], ncol=5, nrow=length(prev2))
+
+col.plot=rev(brewer.pal(n = 5, "YlOrBr")[2:5])
+
+par(las=1)
+matplot(prev2, min.spec, type="l", ylab="", lty=1, col=col.plot, cex.axis=1.2, cex.lab=1.2, xlab="SP")
+par(las=0)
+mtext(text = "Minimum specificity", side=2, line=3, cex=1.2)
+mtext(text = "Minimum specificity", side=2, line=3, cex=1.2)
+legend("bottomleft", legend=c("1/2", "1/5", "1/10", "1/50"), lty=1, col=col.plot, bty="n", cex=.9)
+text(x = 0.15, y=0.23, labels = "Desired 1-PPV")
+abline(v=seq(0, 1, by=.2), col="grey70", lty=2)
+abline(h=seq(0, 1, by=.2), col="grey70", lty=2)
+
+```
+
+Minimum specificity that would be required in an assay (with sensitivity of 90%) to ensure a given probability of misclassification (1-PPV) or less, for a range of transmission settings, represented by different levels of seroprevalence of children aged 9 years (SP).
+
+
+
